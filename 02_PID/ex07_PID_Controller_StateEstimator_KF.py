@@ -3,18 +3,50 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class PID_Controller(object):
-    def __init__():
-        # Code
-    
-    def ControllerInput():
-        # Code
+    def __init__(self, reference, measure, step_time, P_Gain=0.4, D_Gain=0.9, I_Gain=0.02):
+        self.Kp = P_Gain
+        self.Kd = D_Gain
+        self.Ki = I_Gain
+        self.step_time = step_time
+        self.prev_error = measure - reference
+        self.integral = 0.0
+        self.u = 0.0
+
+    def ControllerInput(self, reference, measure):
+        error = measure - reference
+        self.integral += error * self.step_time
+        derivative = (error - self.prev_error) / self.step_time
+        self.u = -self.Kp * error - self.Kd * derivative - self.Ki * self.integral
+        self.prev_error = error
         
 class KalmanFilter:
-    def __init__():
-        # Code
-        
-    def estimate():
-        # Code
+    def __init__(self, y_measure_init, step_time=0.1, m=1.0, Q_pos=0.01, Q_vel=0.1, R=0.5, P_init=1.0):
+        dt = step_time
+        self.A = np.array([[1.0, dt],
+                           [0.0, 1.0]])
+        self.B = np.array([[0.0],
+                           [dt/m]])
+        self.C = np.array([[1.0, 0.0]])
+
+        self.Q = np.array([[Q_pos, 0.0],
+                           [0.0, Q_vel]])
+        self.R = R
+        self.x_estimate = np.array([[y_measure_init], [0.0]])  # [position, velocity]
+        self.P_estimate = np.eye(2) * P_init
+
+    def estimate(self, y_measure, input_u):
+        # Prediction
+        x_predict = self.A @ self.x_estimate + self.B * input_u
+        P_predict = self.A @ self.P_estimate @ self.A.T + self.Q
+
+        # Kalman Gain
+        S = self.C @ P_predict @ self.C.T + self.R
+        K = P_predict @ self.C.T @ np.linalg.inv(S)
+
+        # Update
+        y_predict = self.C @ x_predict
+        self.x_estimate = x_predict + K @ (y_measure - y_predict)
+        self.P_estimate = (np.eye(2) - K @ self.C) @ P_predict
         
         
 if __name__ == "__main__":

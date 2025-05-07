@@ -5,10 +5,13 @@ import matplotlib.pyplot as plt
 class P_Controller(object):
     def __init__(self, P_Gain=0.5):
         # Code
-        
+        self.Kp = P_Gain
+        self.u = 0.0
+
     def ControllerInput(self, reference, measure):
         # Code
-
+        error = measure - reference
+        self.u = -self.Kp * error
 
 if __name__ == "__main__":
     target_y = 0.0

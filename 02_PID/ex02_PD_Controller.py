@@ -5,10 +5,17 @@ import matplotlib.pyplot as plt
 class PD_Controller(object):
     def __init__(self, reference, measure, step_time, P_Gain=0.6, D_Gain=1.2):
         # Code
-    
+        self.Kp = P_Gain
+        self.Kd = D_Gain
+        self.step_time = step_time
+        self.prev_error = measure - reference
+        self.u = 0.0
     def ControllerInput(self, reference, measure):
         # Code
-
+        error = measure - reference
+        derivative = (error - self.prev_error) / self.step_time
+        self.u = -self.Kp * error - self.Kd * derivative
+        self.prev_error = error
 
 if __name__ == "__main__":
     target_y = 0.0

@@ -3,11 +3,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class PID_Controller(object):
-    def __init__():
-        # Code
-    
-    def ControllerInput():
-        # Code
+    def __init__(self, reference, measure, step_time, P_Gain=1.0, D_Gain=3.0, I_Gain=0.1):
+        self.Kp = P_Gain
+        self.Kd = D_Gain
+        self.Ki = I_Gain
+        self.step_time = step_time
+
+        self.prev_error = measure - reference
+        self.integral = 0.0
+        self.u = 0.0
+
+    def ControllerInput(self, reference, measure):
+        error = measure - reference
+        self.integral += error * self.step_time
+        derivative = (error - self.prev_error) / self.step_time
+
+        self.u = -self.Kp * error - self.Kd * derivative - self.Ki * self.integral
+        self.prev_error = error
 
 
 if __name__ == "__main__":
