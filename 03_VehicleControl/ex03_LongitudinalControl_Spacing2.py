@@ -4,14 +4,32 @@ import matplotlib.pyplot as plt
 from VehicleModel_Long import VehicleModel_Long
 
 class PID_Controller_ConstantTimeGap(object):
-    def __init__(self, step_time, target_x, ego_x, ego_vx, timegap = 1.0, P_Gain=0.0, D_Gain=0.0, I_Gain=0.0):
+    def __init__(self, step_time, target_x, ego_x, ego_vx, timegap = 1.0, P_Gain=0.005, D_Gain=1.0, I_Gain=0.000):
+        self.step_time = step_time
+        self.Kp = P_Gain
+        self.Kd = D_Gain
+        self.Ki = I_Gain
         self.timegap = timegap
+
         self.space = ego_vx * self.timegap
-        # Code
-    
+        self.prev_error = 0.0
+        self.integral = 0.0
+        self.u = 0.0
+
     def ControllerInput(self, target_x, ego_x, ego_vx):
-        # Code
-        
+        # 업데이트된 참조 거리 (vx * time gap)
+        self.space = ego_vx * self.timegap
+
+        # 실제 거리와 참조 거리의 차이를 오차로 계산
+        error = (target_x - ego_x) - self.space
+
+        # PID 연산
+        self.integral += error * self.step_time
+        derivative = (error - self.prev_error) / self.step_time
+        self.prev_error = error
+        #u = 종방향 가속도
+        self.u = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
+
 
 if __name__ == "__main__":
     

@@ -17,11 +17,33 @@ if __name__ == "__main__":
     num_point = 5
     x_local = np.arange(0.0, 10.0, 0.5)
 
-    class PD_Controller(object):
-        def __init__(self):
-            # Code
-        def ControllerInput(self):
-            # Code
+    class PurePursuit(object):
+        def __init__(self, step_time, coeff, Vx, L=2.7, lookahead=2.0):
+            self.dt = step_time
+            self.L = L
+            self.lookahead = lookahead
+            self.u = 0.0
+            self.Vx = Vx
+
+        def ControllerInput(self, coeff, Vx):
+            # y = ax^3 + bx^2 + cx + d
+            # 목표점은 lookahead 거리만큼 앞
+            x_ld = self.lookahead
+            a = coeff[0][0]
+            b = coeff[1][0]
+            c = coeff[2][0]
+            d = coeff[3][0]
+            y_ld = a*x_ld**3 + b*x_ld**2 + c*x_ld + d
+
+            # 목표점과의 거리
+            ld = np.sqrt(x_ld**2 + y_ld**2)
+
+            # 조향각 계산
+            alpha = np.arctan2(y_ld, x_ld)  # 로컬 좌표 기준
+            delta = np.arctan2(2 * self.L * np.sin(alpha), ld)
+
+            # 제한
+            self.u = np.clip(delta, -0.52, 0.52)
     
     time = []
     X_ego = []

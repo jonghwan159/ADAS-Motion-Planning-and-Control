@@ -18,10 +18,40 @@ if __name__ == "__main__":
     x_local = np.arange(0.0, 10.0, 0.5)
 
     class PD_Controller(object):
-        def __init__(self):
-            # Code
-        def ControllerInput(self):
-            # Code
+        def __init__(self, step_time, Vx, Kp=1.5, Kd=0.2, L=2.7):
+            self.step_time = step_time
+            self.Kp = Kp
+            self.Kd = Kd
+            self.L = L      # 휠베이스
+            self.Vx = Vx
+            self.prev_error = 0.0
+            self.u = 0.0    # 최종 조향각 결과
+
+        def ControllerInput(self, coeff, Vx):
+            # ------------------------------------
+            # Feedforward term: 곡률 기반 조향각
+            # 곡률 κ = (3a * x^2 + 2b * x + c) / (1 + (3ax^2 + 2bx + c)^2)^(3/2)
+            # 여기서 x = 0이므로 d^2y/dx^2 = 2b, dy/dx = c
+            a = coeff[0][0]
+            b = coeff[1][0]
+            c = coeff[2][0]
+            # Feedforward 조향각: delta_ff = atan(L * curvature)
+            curvature = 2 * b  # at x=0
+            delta_ff = np.arctan(self.L * curvature)
+
+            # ------------------------------------
+            # Feedback term: PD 제어
+            lateral_error = coeff[3][0]   # y(0) = d (오프셋 항)
+            derivative = (lateral_error - self.prev_error) / self.step_time
+            delta_fb = self.Kp * lateral_error + self.Kd * derivative
+            self.prev_error = lateral_error
+
+            # ------------------------------------
+            # Total control
+            self.u = delta_ff + delta_fb
+
+            # 조향각 제한 (±30도 ≈ 0.52 rad)
+            self.u = np.clip(self.u, -0.52, 0.52)
     
     time = []
     X_ego = []
@@ -31,7 +61,7 @@ if __name__ == "__main__":
     frameconverter = Global2Local(num_point)
     polynomialfit = PolynomialFitting(num_degree,num_point)
     polynomialvalue = PolynomialValue(num_degree,np.size(x_local))
-    controller = PID_Controller_Kinematic(step_time, polynomialfit.coeff, Vx)
+    controller = PD_Controller(step_time, polynomialfit.coeff, Vx)
     
     for i in range(int(simulation_time/step_time)):
         time.append(step_time*i)

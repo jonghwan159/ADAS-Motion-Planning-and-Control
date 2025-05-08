@@ -9,7 +9,13 @@ class Global2Local(object):
     
     def convert(self, points, Yaw_ego, X_ego, Y_ego):
         # Code
-            
+        self.GlobalPoints = points
+        for i in range(self.n):
+            dx = points[i,0] - X_ego
+            dy = points[i,1] - Y_ego
+            # 회전 변환: 글로벌 → 로컬
+            self.LocalPoints[i,0] =  dx * np.cos(-Yaw_ego) - dy * np.sin(-Yaw_ego)
+            self.LocalPoints[i,1] =  dx * np.sin(-Yaw_ego) + dy * np.cos(-Yaw_ego)    
 class PolynomialFitting(object):
     def __init__(self, num_degree, num_points):
         self.nd = num_degree
@@ -20,7 +26,15 @@ class PolynomialFitting(object):
         
     def fit(self, points):
         # Code
-
+        for i in range(self.np):
+            x = points[i,0]
+            y = points[i,1]
+            for j in range(self.nd+1):
+                self.A[i,j] = x**(self.nd - j)
+            self.b[i] = y
+        #self.coeff = np.linalg.solve(self.A, self.b)
+        # 최소자승법으로 계수 추정
+        self.coeff, _, _, _ = np.linalg.lstsq(self.A, self.b, rcond=None)
 class PolynomialValue(object):
     def __init__(self, num_degree, num_points):
         self.nd = num_degree
@@ -31,8 +45,13 @@ class PolynomialValue(object):
         
     def calculate(self, coeff, x):
         # Code
-        
-        
+        for i in range(self.np):
+            for j in range(self.nd+1):
+                self.x[0,j] = x[i]**(self.nd - j)
+            self.y[i] = np.dot(self.x, coeff)
+            self.points[i,0] = x[i]
+            self.points[i,1] = self.y[i]  
+            
 if __name__ == "__main__":
     num_degree = 3
     num_point = 4

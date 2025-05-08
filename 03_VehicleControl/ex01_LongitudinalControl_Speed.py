@@ -4,10 +4,21 @@ import matplotlib.pyplot as plt
 from VehicleModel_Long import VehicleModel_Long
 
 class PID_Controller_Speed(object):
-    def __init__(self, reference, measure, step_time, P_Gain=0.0, D_Gain=0.0, I_Gain=0.0):
-        # Code
+    def __init__(self, reference, measure, step_time, P_Gain=4.0, D_Gain=0.0, I_Gain=0.0):
+        self.Kp = P_Gain
+        self.Kd = D_Gain
+        self.Ki = I_Gain
+        self.step_time = step_time
+        self.integral = 0.0
+        self.prev_error = reference - measure
+        self.u = 0.0
+
     def ControllerInput(self, reference, measure):
-        # Code
+        error = reference - measure
+        self.integral += error * self.step_time
+        derivative = (error - self.prev_error) / self.step_time
+        self.u = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
+        self.prev_error = error
 
         
 

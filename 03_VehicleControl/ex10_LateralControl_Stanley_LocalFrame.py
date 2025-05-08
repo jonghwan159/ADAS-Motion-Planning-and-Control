@@ -18,10 +18,31 @@ if __name__ == "__main__":
     x_local = np.arange(0.0, 10.0, 0.5)
 
     class StanleyMethod(object):
-        def __init__(self):
-            # Code
-        def ControllerInput(self):
-            # Code
+        def __init__(self, step_time, coeff, Vx, k=30.0, L=2.7):
+            self.step_time = step_time
+            self.k = k          # gain for lateral control
+            self.L = L          # wheelbase
+            self.Vx = Vx        # longitudinal velocity
+            self.u = 0.0        # steering angle result
+
+        def ControllerInput(self, coeff, Vx):
+            # 경로의 기울기 (tangent angle) at x = 0
+            c = coeff[2][0]                 # 1차항 계수
+            theta_ref = np.arctan(c)       # 경로 진행 방향
+
+            # 차량의 현재 헤딩은 로컬 기준으로 항상 0 (Yaw=0 기준)
+            theta_ego = 0.0
+            heading_error = theta_ref - theta_ego
+
+            # lateral error: y(0) = d (편향 계수)
+            lateral_error = coeff[3][0]
+
+            # Stanley 제어 공식
+            correction = np.arctan2(self.k * lateral_error, Vx)
+            delta = heading_error + correction
+
+            # 조향각 제한 (±30도 ≈ 0.52 rad)
+            self.u = np.clip(delta, -0.52, 0.52)
     
     time = []
     X_ego = []
