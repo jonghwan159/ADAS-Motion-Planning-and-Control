@@ -4,23 +4,37 @@ from lane_1 import lane
 
 # Polynomial value calculation
 def Polyval(coeff, x):
-    # Code
-    return 0
-        
+    y = 0
+    for i in range(len(coeff)):
+        y += coeff[i] * (x ** (len(coeff) - i - 1))
+    return y
+
 # Global coordinate --> Local coordinate
 def Global2Local(global_points, yaw_ego, X_ego, Y_ego):
-    # Code
-    return 0
-        
+    local_points = []
+    for pt in global_points:
+        dx = pt[0] - X_ego
+        dy = pt[1] - Y_ego
+        x_local = dx * np.cos(-yaw_ego) - dy * np.sin(-yaw_ego)
+        y_local = dx * np.sin(-yaw_ego) + dy * np.cos(-yaw_ego)
+        local_points.append([x_local, y_local])
+    return local_points
+
 # Polynomial fitting (n_th order)
 def Polyfit(points, num_order):
-    # Code
-    return 0
+    if len(points) == 0:
+        return [0] * (num_order + 1)
+    x = [pt[0] for pt in points]
+    y = [pt[1] for pt in points]
+    coeff = np.polyfit(x, y, num_order)
+    return coeff
 
-# Both lane to path
+# Both lane to center path polynomial
 def BothLane2Path(coeff_L, coeff_R):
-    # Code
-    return 0
+    # 두 차선의 중간 위치를 평균 폴리노미얼로 근사
+    min_len = min(len(coeff_L), len(coeff_R))
+    coeff_center = [(coeff_L[i] + coeff_R[i]) / 2 for i in range(min_len)]
+    return coeff_center
 
 # Vehicle model
 class VehicleModel_Lat(object):
