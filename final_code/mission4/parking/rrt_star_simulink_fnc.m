@@ -23,7 +23,7 @@ goal_sample_rate = 0.1;
 eta = 3.0;
 
 start = [Ego_Global_X, Ego_Global_Y];
-goal  =  [12, -7];
+goal  =  [17, -10.1];
 vehicle_size = [1.97, 4.47];
 
 map_boundary = [5.5, -4, 47.5, -3.9, 47.5, -44.9, 5.5, -44.9];
@@ -47,16 +47,16 @@ node_count = int32(1);
 goal_node = int32(0);
 
 for iter = 1:MAX_NODES
-    % === 고르게 샘플링 + 상단영역 편향 샘플링 추가 ===
     r = rand;
     if r < goal_sample_rate
         sample = goal;
     elseif r < 0.6
         sample = [x_min + rand*(x_max - x_min), y_min + rand*(y_max - y_min)];
     else
-        % 상단 영역 샘플링 강화
         sample = [x_min + rand*(x_max - x_min), -15 + rand * (-5)];
     end
+    sample(1) = min(max(sample(1), x_min), x_max);
+    sample(2) = min(max(sample(2), y_min), y_max);
 
     nearest_idx = int32(1);
     min_dist = norm(nodes(1).pos - sample);
@@ -107,8 +107,8 @@ if goal_node > 0
     flipped = flipud(temp_path(1:i,:));
 
     % Hybrid A* 직선 후처리
-    pre_steps  = 10;
-    post_steps = 5;
+    pre_steps  = 12;
+    post_steps = 6;
     step_dist  = 0.5;
     last_pos = flipped(end, :);
 
@@ -133,7 +133,7 @@ if goal_node > 0
     hybrid_path = [pre_path; goal; post_path];
     raw_path    = [flipped; hybrid_path];
     path_interp = smooth_path(raw_path, 0.5);
-    path_interp = smooth_moving_average(path_interp, 20);
+    path_interp = smooth_moving_average(path_interp, 35);
 
     path_len    = size(path_interp,1);
     path_out    = zeros(MAX_PATH_LEN, 2);
@@ -144,6 +144,7 @@ if goal_node > 0
     path_len_cached = path_len;
     success_cached  = true;
 end
+
 end
 
 %% === 보조 함수 ===
